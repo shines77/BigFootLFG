@@ -1,0 +1,7 @@
+﻿## Interface: 11302
+## Version: 1.4
+## Title: BigFootLFG
+## Author: Manas丶
+## Notes: fucking stupid bigfoot channel
+
+BigFootLFG.lua
