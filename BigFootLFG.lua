@@ -18,36 +18,36 @@ local ContentRepeatInterval = 30
 local Symbols = {"`","~","@","#","^","*","=","|"," ","，","。","、","？","！","：","；","’","‘","“","”","【","】","『","』","《","》","<",">","（","）"}
 
 -- 屏蔽商业喊话的关键字列表
-local MatchForbidden = {"无限","大量","长期","邮寄","FM","附魔","十字军","冰寒","屠魔","丝绸","魔纹","符文布","硬甲皮","厚皮","遗物宝箱","英雄","活动","血色","厄运","飞机","航班","直达","1G","2G","3G","1Ｇ","2Ｇ","3Ｇ","1金","2金","3金"}
+local MatchForbidden = {"无限","大量","长期","邮寄","托管","公会","工会","诚邀","加入","FM","附魔","十字军","冰寒","屠魔","丝绸","魔纹","符文布","硬甲皮","厚皮","宝箱","英雄","活动","血色","厄运","玛拉顿","STSM","斯坦索姆","飞机","飞行","航班","直达","1G","2G","3G","1Ｇ","2Ｇ","3Ｇ","1金","2金","3金"}
 -- 出现组合屏蔽词库内的几个不同词语就进行屏蔽
 local MatchCount = 2
 
 -- 硬屏蔽的关键字列表
-local HardForbidden = {"装等","无限收","无线收","高价收","大量收","效率","带血色","老板","老木板","{rt","RO点"}
+-- "老板","老木板"
+local HardForbidden = {"装等","无限收","无线收","高价收","大量收","大米","小米","出米","支付宝","芝麻信用","飞机","带血色","老木板","{rt1}","{rt2}","{rt3}","{rt4}","{rt5}","{rt6}","{rt7}","{rt8}","RO点"}
 
 -- 大脚白名单模式显示的过滤词
-local Show = {"治疗","奶","N","牧师","MS","DPS","拉怪","猎人","LR","法师","FS","黑石深渊","黑石"}
+local Show = {
+    -- "治疗","奶","N","牧师","MS","DPS","拉怪","猎人","LR","法师","FS","黑石深渊","黑石"
+}
 
 -- 大脚白名单模式过滤后需要去屏蔽的词
 local ForbiddenOnShow = {
-    "公会","工会",
+    --"公会","工会",
     "怒焰","NY","ny",
     "哀嚎","AH","ah",
-    --"死亡矿井","死矿","SK","sk","SW","sw",
-    --"监狱","JY","jy",
+    "死亡矿井","死矿","SK","sk","SW","sw",
+    "监狱","JY","jy",
     "黑暗深渊","SY","sy",
     "影牙","YY","yy",
     "剃刀","沼泽","TDZZ","tdzz",
     "诺莫瑞根","瑞根","矮人本",
-    --"血色","XS","墓地","MD","图书馆","武器库","军械库","教堂",
+    "血色","XS","墓地","MD","图书馆","武器库","军械库","教堂",
     "高地","TDGD","tdgd",
     "奥达曼","ADM","adm",
     "祖尔","祖尔法拉克","ZUL","zul",
-    --"AA",
-}
-
-local ForbiddenOnShow2 = {
     -- "黑石","黑石深渊","深渊","HS","hs",
+    --"AA",
 }
 
 --
@@ -55,6 +55,8 @@ local ForbiddenOnShow2 = {
 --
 -- See: https://www.cnblogs.com/meamin9/p/4502461.html
 --
+
+local cnt = 0
 
 function utf8ToChars(input)
      local list = {}
@@ -76,7 +78,12 @@ function utf8ToChars(input)
             offset = 5
         end
         local str = string.sub(input, index, index + offset - 1)
-        -- print(str)
+        --[[
+        if cnt < 40 then
+            print("["..offset.."]:"..str)
+            cnt = cnt + 1
+        end
+        --]]
         index = index + offset
         table.insert(list, str)
      end
@@ -141,13 +148,13 @@ function removeDuplicates(str)
     for i = 1, #chars do
         table.insert(buffChars.new, chars[i])
         
-        if not buffChars.old[index] or chars[i] ~= buffChars.old[index] then
+        if (not buffChars.old[index]) or (chars[i] ~= buffChars.old[index]) then
             MergeTable(buffChars.old, buffChars.new)
             buffChars.new = {}
         else
             index = index + 1
 
-            if index > 2 and index > #buffChars.old then
+            if (index > 2) and (index > #buffChars.old) then
                 --buffChars.new = {}
                 --index = 1
                 break
@@ -173,8 +180,8 @@ local function ContainsKeyword(text, keyword)
 end
 
 local function ContainsKeywords(text, keywords)
-    for _, keyword in ipairs(keywords) do
-        local start, end2, substr = string.find(text, keyword, 1, true)
+    for _, word in ipairs(keywords) do
+        local start, end2, substr = string.find(text, word, 1, true)
         if start ~= nil and start > 0 then
             return true
         end
@@ -184,8 +191,8 @@ end
 
 local function ContainsKeywordsCount(text, keywords)
     local count = 0
-    for _, keyword in ipairs(keywords) do
-        local start, end2, substr = string.find(text, keyword, 1, true)
+    for _, word in ipairs(keywords) do
+        local start, end2, substr = string.find(text, word, 1, true)
         if start ~= nil and start > 0 then
             count = count + 1
         end
@@ -193,8 +200,9 @@ local function ContainsKeywordsCount(text, keywords)
     return count
 end
 
-local function CheckMatchForbidden(str)
-    local match = ContainsKeywordsCount(str, MatchForbidden)
+local function CheckMatchForbidden(text)
+    local match = ContainsKeywordsCount(text, MatchForbidden)
+    --print("CheckMatchForbidden() = "..tostring(match))
     if match >= MatchCount then
         return true
     else
@@ -229,7 +237,7 @@ local function removeServerDash(name)
 end
 
 local lastLineId = 0
-local lastNeedBlocked = false
+local lastBlockState = false
 local lastFilteredMsg = ""
 
 -- zone channel id : Zone ID used for generic system channels (1 for General, 2 for Trade, 22 for LocalDefense, 23 for WorldDefense and 26 for LFG). 
@@ -245,32 +253,6 @@ function ChatChannelFilter(self, event, text, playerName, languageName, channelN
             text, a = gsub(text, symbol, "")
         end
         
-        text = removeDuplicates(text)
-        
-        -- 防刷屏
-        local nameNoDash = removeServerDash(playerName)
-        if nameNoDash ~= UnitName("player") and EnableForbiddenRepeat then
-            t = GetTime()
-
-            last30Seconds[self.name] = last30Seconds[self.name] or {}
-            
-            if last30Seconds[self.name][nameNoDash] then
-                if t - last30Seconds[self.name][nameNoDash].time < ChatInterval then
-                    last30Seconds[self.name][nameNoDash] = { time = t, content = text }
-                    --print("dect spam : " .. nameNoDash .. ":".. text)
-                    return true
-                end
-                
-                if t - last30Seconds[self.name][nameNoDash].time < ContentRepeatInterval and msg == last30Seconds[self.name][nameNoDash].content then
-                    last30Seconds[self.name][nameNoDash] = { time = t, content = text }
-                    --print("dect repeat : " .. nameNoDash .. ":".. text)
-                    return true
-                end
-            end
-
-            last30Seconds[self.name][nameNoDash] = { time = t, content = text }
-        end
-        
         -- 硬屏蔽
         local isHardForbidden = ContainsKeywords(text, HardForbidden)
         if isHardForbidden then
@@ -278,20 +260,50 @@ function ChatChannelFilter(self, event, text, playerName, languageName, channelN
         end
         
         -- 大脚白名单模式
-        if EnableForbiddenBigfoot and (channelBaseName == "大脚世界频道" or channelBaseName == "大脚世界频道2" or channelBaseName == "世界频道" or channelBaseName == "大脚世界频道3"or channelBaseName == "世界频道2" or channelBaseName == "大脚世界频道4") then
+        --if EnableForbiddenBigfoot and (channelBaseName == "大脚世界频道" or channelBaseName == "大脚世界频道2" or channelBaseName == "世界频道" or channelBaseName == "大脚世界频道3"or channelBaseName == "世界频道2" or channelBaseName == "大脚世界频道4") then
             local inWhiteList = ContainsKeywords(text, Show)
             if inWhiteList then
-                local isForbidden = ContainsKeywords(text, ForbiddenOnShow)
-                return isForbidden
+                return false
             else
-                -- return true
+                local isForbidden = ContainsKeywords(text, ForbiddenOnShow)
+                if isForbidden then
+                    return true
+                end
             end
-        end
+        --end
 
         -- 多词语
         local isMatchForbidden = CheckMatchForbidden(text)
         if isMatchForbidden then
             return true
+        end
+
+        text = removeDuplicates(text)
+        
+        -- 防刷屏
+        local nameNoDash = removeServerDash(playerName)
+        if nameNoDash ~= UnitName("player") and EnableForbiddenRepeat then
+            t = GetTime()
+
+            if not last30Seconds[self.name] then
+                last30Seconds[self.name] = {}
+            end
+            -- last30Seconds[self.name] = last30Seconds[self.name] or {}
+            
+            local playerStatus = last30Seconds[self.name][nameNoDash]
+            if playerStatus then
+                if (t - playerStatus.lastTime) < ChatInterval then
+                    --print("dect spam : " .. nameNoDash .. ":".. text)
+                    return true
+                end
+                
+                if (text == playerStatus.content) and ((t - playerStatus.lastTime) < ContentRepeatInterval) then
+                    --print("dect repeat : " .. nameNoDash .. ":".. text)
+                    return true
+                end
+            end
+
+            last30Seconds[self.name][nameNoDash] = { lastTime = t, content = text }
         end
     end
     
@@ -317,7 +329,7 @@ end
 --
 function BigFootLFG_Filter(self, event, text, playerName, languageName, channelName, playerName2, specialFlags, zoneChannelId, channelIndex, channelBaseName, unused, lineId, guid, bnSenderId)
     if lineId == lastLineId then
-        if lastNeedBlocked then
+        if lastBlockState then
             if (self == DEFAULT_CHAT_FRAME) then
                 -- DEFAULT_CHAT_FRAME:AddMessage("\124cffffc0c0[" .. tostring(channelIndex) .. "." .. channelBaseName .. "] [\124r\124cffffdd00**" .. playerName2 .. "**\124r\124cffffc0c0]： " .. text .."\124r")
             end
@@ -325,13 +337,13 @@ function BigFootLFG_Filter(self, event, text, playerName, languageName, channelN
             --return true, text, playerName, languageName, channelName, playerName2, specialFlags, zoneChannelId, channelIndex, channelBaseName, unused, lineId, guid, bnSenderId
             return true
         else
-            return lastNeedBlocked
+            return lastBlockState
         end
     else
         lastLineId = lineId
-        local needBlocked = ChatChannelFilter(self, event, text, playerName, languageName, channelName, playerName2, specialFlags, zoneChannelId, channelIndex, channelBaseName, unused, lineId, guid, bnSenderId)
-        lastNeedBlocked = needBlocked
-        if needBlocked then
+        local blockState = ChatChannelFilter(self, event, text, playerName, languageName, channelName, playerName2, specialFlags, zoneChannelId, channelIndex, channelBaseName, unused, lineId, guid, bnSenderId)
+        lastBlockState = blockState
+        if blockState then
             if (self == DEFAULT_CHAT_FRAME) then
                 -- DEFAULT_CHAT_FRAME:AddMessage("\124cffffc0c0[" .. tostring(channelIndex) .. "." .. channelBaseName .. "] [\124r\124cffffdd00*" .. playerName2 .. "*\124r\124cffffc0c0]： " .. text .."\124r")
             end
@@ -339,7 +351,7 @@ function BigFootLFG_Filter(self, event, text, playerName, languageName, channelN
             --return true, text, playerName, languageName, channelName, playerName2, specialFlags, zoneChannelId, channelIndex, channelBaseName, unused, lineId, guid, bnSenderId
             return true
         else
-            return needBlocked
+            return blockState
         end
     end
 end
