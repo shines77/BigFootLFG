@@ -23,7 +23,7 @@ local MatchForbidden = {"无限","大量","邮寄","丝绸","魔纹","符文布"
 local MatchCount = 2
 
 -- 硬屏蔽的关键字列表
-local HardForbidden = {"装等","无限收","无线收","高价收","大量收","效率","带血色","老板","老木板","{rt1}","{rt2}","{rt3}","{rt4}","{rt5}","{rt6}","{rt7}","{rt8}"}
+local HardForbidden = {"装等","无限收","无线收","高价收","大量收","效率","带血色","老板","老木板","{rt"}
 
 -- 大脚白名单模式显示的过滤词
 local Show = {"治疗","奶","N","牧师","MS","DPS","拉怪","猎人","LR","法师","FS","黑石深渊","黑石"}
@@ -48,6 +48,12 @@ local ForbiddenOnShow = {"公会","工会",
 local ForbiddenOnShow2 = {
                          -- "黑石","黑石深渊","深渊","HS","hs",
 }
+
+--
+-- About string.find(), string.gsub() in Lua.
+--
+-- See: https://www.cnblogs.com/meamin9/p/4502461.html
+--
 
 local function removeElementByKey(tbl, key)
     local tmp = {}
@@ -160,7 +166,7 @@ local function CheckMatchForbidden(str)
     local match = 0
     for _, word in ipairs(MatchForbidden) do
         local start, end2, substr = string.find(str, word, 1, true)
-        if start ~= nil and start >= 0 then
+        if start ~= nil and start > 0 then
             match = match + 1
         end
         --[[
@@ -251,7 +257,7 @@ function ChatChannelFilter(self, event, text, playerName, languageName, channelN
         -- 硬屏蔽
         for _, word in ipairs(HardForbidden) do
             local start, end2, substr = string.find(text, word, 1, true)
-            if start ~= nil and start >= 0 then
+            if start ~= nil and start > 0 then
                 return true
             end
             --[[
@@ -272,7 +278,7 @@ function ChatChannelFilter(self, event, text, playerName, languageName, channelN
             local find = false
             for _, word in ipairs(Show) do
                 local start, end2, substr = string.find(text, word, 1, true)
-                if start ~= nil and start >= 0 then
+                if start ~= nil and start > 0 then
                     find = true
                     break
                 end
@@ -288,7 +294,7 @@ function ChatChannelFilter(self, event, text, playerName, languageName, channelN
             if find then
                 for _, word in ipairs(ForbiddenOnShow) do
                     local start, end2, substr = string.find(text, word, 1, true)
-                    if start ~= nil and start >= 0 then
+                    if start ~= nil and start > 0 then
                         return true
                     end
                     --[[
