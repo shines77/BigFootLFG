@@ -18,35 +18,36 @@ local ContentRepeatInterval = 30
 local Symbols = {"`","~","@","#","^","*","=","|"," ","，","。","、","？","！","：","；","’","‘","“","”","【","】","『","』","《","》","<",">","（","）"}
 
 -- 屏蔽商业喊话的关键字列表
-local MatchForbidden = {"无限","大量","邮寄","丝绸","魔纹","符文布","硬甲皮","英雄","活动","血色","厄运","飞机","航班","直达","1G","2G","3G","1Ｇ","2Ｇ","3Ｇ","1金","2金","3金"}
+local MatchForbidden = {"无限","大量","长期","邮寄","FM","附魔","十字军","冰寒","屠魔","丝绸","魔纹","符文布","硬甲皮","厚皮","遗物宝箱","英雄","活动","血色","厄运","飞机","航班","直达","1G","2G","3G","1Ｇ","2Ｇ","3Ｇ","1金","2金","3金"}
 -- 出现组合屏蔽词库内的几个不同词语就进行屏蔽
 local MatchCount = 2
 
 -- 硬屏蔽的关键字列表
-local HardForbidden = {"装等","无限收","无线收","高价收","大量收","效率","带血色","老板","老木板","{rt"}
+local HardForbidden = {"装等","无限收","无线收","高价收","大量收","效率","带血色","老板","老木板","{rt","RO点"}
 
 -- 大脚白名单模式显示的过滤词
 local Show = {"治疗","奶","N","牧师","MS","DPS","拉怪","猎人","LR","法师","FS","黑石深渊","黑石"}
 
 -- 大脚白名单模式过滤后需要去屏蔽的词
-local ForbiddenOnShow = {"公会","工会",
-                         "怒焰","NY","ny",
-                         "哀嚎","AH","ah",
-                         --"死亡矿井","死矿","SK","sk","SW","sw",
-                         --"监狱","JY","jy",
-                         "黑暗深渊","SY","sy",
-                         "影牙","YY","yy",
-                         "剃刀","沼泽","TDZZ","tdzz",
-                         "诺莫瑞根","瑞根","矮人本",
-                         --"血色","XS","墓地","MD","图书馆","武器库","军械库","教堂",
-                         "高地","TDGD","tdgd",
-                         "奥达曼","ADM","adm",
-                         "祖尔","祖尔法拉克","ZUL","zul",
-                         --"AA",
+local ForbiddenOnShow = {
+    "公会","工会",
+    "怒焰","NY","ny",
+    "哀嚎","AH","ah",
+    --"死亡矿井","死矿","SK","sk","SW","sw",
+    --"监狱","JY","jy",
+    "黑暗深渊","SY","sy",
+    "影牙","YY","yy",
+    "剃刀","沼泽","TDZZ","tdzz",
+    "诺莫瑞根","瑞根","矮人本",
+    --"血色","XS","墓地","MD","图书馆","武器库","军械库","教堂",
+    "高地","TDGD","tdgd",
+    "奥达曼","ADM","adm",
+    "祖尔","祖尔法拉克","ZUL","zul",
+    --"AA",
 }
 
 local ForbiddenOnShow2 = {
-                         -- "黑石","黑石深渊","深渊","HS","hs",
+    -- "黑石","黑石深渊","深渊","HS","hs",
 }
 
 --
@@ -54,29 +55,6 @@ local ForbiddenOnShow2 = {
 --
 -- See: https://www.cnblogs.com/meamin9/p/4502461.html
 --
-
-local function removeElementByKey(tbl, key)
-    local tmp = {}
-    
-    for i in pairs(tbl) do
-        table.insert(tmp, i)
-    end
-
-    local newTbl = {}
-
-    local i = 1
-    while i <= #tmp do
-        local val = tmp[i]
-        if val == key then
-            table.remove(tmp, i)
-        else
-            newTbl[val] = tbl[val]
-            i = i + 1
-        end
-    end
-
-    return newTbl
-end
 
 function utf8ToChars(input)
      local list = {}
@@ -106,6 +84,29 @@ function utf8ToChars(input)
      return list
 end
 
+local function removeElementByKey(tbl, key)
+    local tmp = {}
+    
+    for i in pairs(tbl) do
+        table.insert(tmp, i)
+    end
+
+    local newTbl = {}
+
+    local i = 1
+    while i <= #tmp do
+        local val = tmp[i]
+        if val == key then
+            table.remove(tmp, i)
+        else
+            newTbl[val] = tbl[val]
+            i = i + 1
+        end
+    end
+
+    return newTbl
+end
+
 function MergeTable(...)
     local tabs = {...}
     if not tabs then
@@ -116,7 +117,7 @@ function MergeTable(...)
         if origin then
             if tabs[i] then
                 for k, v in pairs(tabs[i]) do
-                    table.insert(origin,v)
+                    table.insert(origin, v)
                 end
             end
         else
@@ -162,28 +163,44 @@ function removeDuplicates(str)
     return ret
 end
 
-local function CheckMatchForbidden(str)
-    local match = 0
-    for _, word in ipairs(MatchForbidden) do
-        local start, end2, substr = string.find(str, word, 1, true)
-        if start ~= nil and start > 0 then
-            match = match + 1
-        end
-        --[[
-        local _, result = gsub(str, word, "")
-        if (result > 0) then
-            match = match + 1
-        end
-        --]]
-    end
+local function ContainsKeyword(text, keyword)
+    local start, end2, substr = string.find(text, keyword, 1, true)
+    if start ~= nil and start > 0 then
+        return true
+    else
+        return false
+    end    
+end
 
+local function ContainsKeywords(text, keywords)
+    for _, keyword in ipairs(keywords) do
+        local start, end2, substr = string.find(text, keyword, 1, true)
+        if start ~= nil and start > 0 then
+            return true
+        end
+    end
+    return false
+end
+
+local function ContainsKeywordsCount(text, keywords)
+    local count = 0
+    for _, keyword in ipairs(keywords) do
+        local start, end2, substr = string.find(text, keyword, 1, true)
+        if start ~= nil and start > 0 then
+            count = count + 1
+        end
+    end
+    return count
+end
+
+local function CheckMatchForbidden(str)
+    local match = ContainsKeywordsCount(str, MatchForbidden)
     if match >= MatchCount then
         return true
     else
         return false
     end
 end
-
 
 local anti_spam = CreateFrame("Frame")
 local last30Seconds = {}
@@ -255,60 +272,26 @@ function ChatChannelFilter(self, event, text, playerName, languageName, channelN
         end
         
         -- 硬屏蔽
-        for _, word in ipairs(HardForbidden) do
-            local start, end2, substr = string.find(text, word, 1, true)
-            if start ~= nil and start > 0 then
-                return true
-            end
-            --[[
-            local _, result = gsub(text, word, "")
-            if (result > 0) then
-                return true
-            end
-            --]]
-        end
-
-        -- 多词语
-        if CheckMatchForbidden(text) then
+        local isHardForbidden = ContainsKeywords(text, HardForbidden)
+        if isHardForbidden then
             return true
         end
         
         -- 大脚白名单模式
-        if EnableForbiddenBigfoot and (channelBaseName == "大脚世界频道" or channelBaseName == "大脚世界频道2" or channelBaseName == "世界频道" or channelBaseName == "大脚世界频道3" or channelBaseName == "大脚世界频道4") then
-            local find = false
-            for _, word in ipairs(Show) do
-                local start, end2, substr = string.find(text, word, 1, true)
-                if start ~= nil and start > 0 then
-                    find = true
-                    break
-                end
-                --[[
-                local newString, result = gsub(text, word, "");
-                if (result > 0) then
-                    find = true
-                    break
-                end
-                --]]
-            end
-
-            if find then
-                for _, word in ipairs(ForbiddenOnShow) do
-                    local start, end2, substr = string.find(text, word, 1, true)
-                    if start ~= nil and start > 0 then
-                        return true
-                    end
-                    --[[
-                    local newString, result = gsub(text, word, "");
-                    if (result > 0) then
-                        return true
-                    end
-                    --]]
-                end
-                
-                return false
+        if EnableForbiddenBigfoot and (channelBaseName == "大脚世界频道" or channelBaseName == "大脚世界频道2" or channelBaseName == "世界频道" or channelBaseName == "大脚世界频道3"or channelBaseName == "世界频道2" or channelBaseName == "大脚世界频道4") then
+            local inWhiteList = ContainsKeywords(text, Show)
+            if inWhiteList then
+                local isForbidden = ContainsKeywords(text, ForbiddenOnShow)
+                return isForbidden
             else
-                return true
+                -- return true
             end
+        end
+
+        -- 多词语
+        local isMatchForbidden = CheckMatchForbidden(text)
+        if isMatchForbidden then
+            return true
         end
     end
     
