@@ -525,7 +525,7 @@ local function ChatFrame_AddMessage(frame, channelName, ...)
     if (start == nil) or (channelName == "大脚世界频道") then
         return AddMessage_hooks[frame](frame, channelName, ...)
     else
-        return AddMessage_hooks[frame](frame, channelName:gsub('|h%[(%d+)%. 大脚世界频道(%d+)]|h', '|h%[%1%.世%]|h'), ...)
+        return AddMessage_hooks[frame](frame, channelName:gsub("|h%[(%d+)%. 大脚世界频道(%d+)]|h", "|h%[%1%.世%]|h"), ...)
     end
 end
 
