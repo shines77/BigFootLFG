@@ -173,7 +173,7 @@ end
 
 local function removeElementByKey(tbl, key)
     local tmp = {}
-    
+
     for i in pairs(tbl) do
         table.insert(tmp, i)
     end
@@ -221,12 +221,12 @@ local function removeDuplicates(str)
         old = {},
         new = {},
     }
-    
+
     local index = 1
-    
+
     for i = 1, #chars do
         table.insert(buffChars.new, chars[i])
-        
+
         if (not buffChars.old[index]) or (chars[i] ~= buffChars.old[index]) then
             mergeTable(buffChars.old, buffChars.new)
             buffChars.new = {}
@@ -245,7 +245,7 @@ local function removeDuplicates(str)
     for i = 1, #buffChars.old do
         ret = ret .. buffChars.old[i]
     end
-    
+
     return ret
 end
 
@@ -255,7 +255,7 @@ local function ContainsKeyword(text, keyword)
         return true
     else
         return false
-    end    
+    end
 end
 
 local function ContainsKeywords(text, keywords)
@@ -319,7 +319,7 @@ local lastLineId = 0
 local lastBlockState = false
 local lastFilteredMsg = ""
 
--- zone channel id : Zone ID used for generic system channels (1 for General, 2 for Trade, 22 for LocalDefense, 23 for WorldDefense and 26 for LFG). 
+-- zone channel id : Zone ID used for generic system channels (1 for General, 2 for Trade, 22 for LocalDefense, 23 for WorldDefense and 26 for LFG).
 -- Not used for custom channels or if you joined an Out-Of-Zone channel ex: "General - Stormwind City"
 function ChatChannelFilter(self, event, text, playerName, languageName, channelName, playerName2, specialFlags, zoneChannelId, channelIndex, channelBaseName, unused, lineId, guid, bnSenderId)
 
@@ -335,13 +335,13 @@ function ChatChannelFilter(self, event, text, playerName, languageName, channelN
         for _, symbol in ipairs(Symbols) do
             text, a = string_gsub(text, symbol, "")
         end
-        
+
         -- 硬屏蔽
         local isHardForbidden = ContainsKeywords(text, HardForbidden)
         if isHardForbidden then
             return true
         end
-        
+
         -- 多词语
         local isMatchForbidden = CheckMatchForbidden(text)
         if isMatchForbidden then
@@ -362,7 +362,7 @@ function ChatChannelFilter(self, event, text, playerName, languageName, channelN
         --end
 
         text = removeDuplicates(text)
-        
+
         -- 防刷屏
         local nameNoDash = removeServerDash(playerName)
         if nameNoDash ~= UnitName("player") and EnableForbiddenRepeat then
@@ -372,14 +372,14 @@ function ChatChannelFilter(self, event, text, playerName, languageName, channelN
                 last30Seconds[self.name] = {}
             end
             -- last30Seconds[self.name] = last30Seconds[self.name] or {}
-            
+
             local playerStatus = last30Seconds[self.name][nameNoDash]
             if playerStatus then
                 if (t - playerStatus.lastTime) < ChatInterval then
                     -- print("dect spam : [" .. nameNoDash .. "]： ".. text)
                     return true
                 end
-                
+
                 if (text == playerStatus.content) and ((t - playerStatus.lastTime) < ContentRepeatInterval) then
                     -- print("dect repeat : [" .. nameNoDash .. "]： ".. text)
                     return true
@@ -389,7 +389,7 @@ function ChatChannelFilter(self, event, text, playerName, languageName, channelN
             last30Seconds[self.name][nameNoDash] = { lastTime = t, content = text }
         end
     end
-    
+
     return false
 end
 
@@ -407,7 +407,7 @@ end
 --
 -- See: https://wow.gamepedia.com/CHAT_MSG_CHANNEL
 --
--- zone channel id : Zone ID used for generic system channels (1 for General, 2 for Trade, 22 for LocalDefense, 23 for WorldDefense and 26 for LFG). 
+-- zone channel id : Zone ID used for generic system channels (1 for General, 2 for Trade, 22 for LocalDefense, 23 for WorldDefense and 26 for LFG).
 -- Not used for custom channels or if you joined an Out-Of-Zone channel ex: "General - Stormwind City"
 --
 function BigFootLFG_Filter(self, event, text, playerName, languageName, channelName, playerName2, specialFlags, zoneChannelId, channelIndex, channelBaseName, unused, lineId, guid, bnSenderId)
@@ -498,19 +498,19 @@ function GetColoredName_save(event, arg1, arg2, arg3, arg4, arg5, arg6, arg7, ar
         chatType = "CHANNEL"..arg8;
     end
     local info = ChatTypeInfo[chatType];
-    
+
     if info and info.colorNameByClass and arg12 ~= "" then
         local localizedClass, englishClass, localizedRace, englishRace, sex, name, realm = GetPlayerInfoByGUID(arg12);
-        
+
         if englishClass then
             local classColorTable = ns.ClassColors[englishClass];
             if not classColorTable then
                 return arg2;
             end
-            return string.format("\124cff%.2x%.2x%.2x", classColorTable.r*255, classColorTable.g*255, classColorTable.b*255)..arg2.."\124r";
+            return string.format("\124cff%.2x%.2x%.2x", classColorTable.r * 255, classColorTable.g * 255, classColorTable.b * 255)..arg2.."\124r";
         end
     end
-    
+
     return arg2;
 end
 
